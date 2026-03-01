@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card mb-3">
+    <div class="card-header bg-secondary text-white">
+        <h4 class="mb-0">Lead Review</h4>
+    </div>
+    <div class="card-body">
+        <p><strong>ID:</strong> {{ submission.id }}</p>
+        <p><strong>User:</strong> {{ submission.user.email }}</p>
+        <p><strong>Status:</strong> <span class="badge bg-info">{{ submission.workflow_state }}</span></p>
+        <p><strong>Submitted:</strong> {{ submission.created_at|date:"Y-m-d H:i" }}</p>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="mb-0">Field Values</h5>
+    </div>
+    <div class="card-body">
+        <ul class="list-group">
+            {% for field in submission.field_values.all %}
+                <li class="list-group-item">
+                    <strong>{{ field.field_key }}:</strong> {{ field.value_json }}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+{% if audits %}
+<div class="card mb-3">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">Submission History</h5>
+    </div>
+    <div class="card-body">
+        <div class="timeline">
+            {% for audit in audits %}
+            <div class="mb-3 pb-3 border-bottom">
+                <span class="badge bg-primary">{{ audit.action }}</span>
+                <small class="text-muted">{{ audit.created_at|date:"Y-m-d H:i" }}</small>
+                <p class="mb-0"><strong>{{ audit.user.email }}</strong></p>
+                <p class="text-muted small">{{ audit.from_state }} → {{ audit.to_state }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if reviews %}
+<div class="card mb-3">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">Review Comments</h5>
+    </div>
+    <div class="card-body">
+        {% for review in reviews %}
+        <div class="mb-3 pb-3 border-bottom">
+            <p><strong>{{ review.reviewer.email }}</strong> <small class="text-muted">{{ review.reviewed_at|date:"Y-m-d H:i" }}</small></p>
+            <p class="text-muted">{{ review.from_state }} → <span class="badge bg-info">{{ review.to_state }}</span></p>
+            {% if review.comment %}
+            <p class="bg-light p-2 rounded">{{ review.comment }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<form method="post" class="card">
+    {% csrf_token %}
+    <div class="card-header bg-warning">
+        <h5 class="mb-0">Make Decision</h5>
+    </div>
+    <div class="card-body">
+        <div class="mb-3">
+            <label for="comment" class="form-label">Comment</label>
+            <textarea id="comment" name="comment" class="form-control" placeholder="Add comment for the submitter" rows="4"></textarea>
+        </div>
+        <button name="action" value="approve" class="btn btn-success me-2">
+            <i class="fa fa-check"></i> Approve
+        </button>
+        <button name="action" value="reject" class="btn btn-danger">
+            <i class="fa fa-times"></i> Reject
+        </button>
+    </div>
+</form>
+{% endblock %}

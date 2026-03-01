@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Submission Details - Children of India{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'field_submissions' %}" class="btn btn-outline-secondary mb-2">
+        <i class="fa fa-arrow-left"></i> Back to Submissions
+    </a>
+    <h2>Submission Details</h2>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-1">Form Submission</h5>
+                <small class="text-muted">{{ submission.created_at|date:'Y-m-d H:i' }}</small>
+            </div>
+            {% if submission.workflow_state == "draft" %}
+            <span class="badge bg-secondary p-2">DRAFT</span>
+            {% elif submission.workflow_state == "submitted" %}
+            <span class="badge bg-warning p-2">SUBMITTED</span>
+            {% elif submission.workflow_state == "coordinator_review" %}
+            <span class="badge bg-info p-2">COORDINATOR REVIEW</span>
+            {% elif submission.workflow_state == "lead_review" %}
+            <span class="badge bg-primary p-2">LEAD REVIEW</span>
+            {% elif submission.workflow_state == "approved" %}
+            <span class="badge bg-success p-2">APPROVED</span>
+            {% elif submission.workflow_state == "rejected" %}
+            <span class="badge bg-danger p-2">REJECTED</span>
+            {% elif submission.workflow_state == "resubmission" %}
+            <span class="badge bg-warning p-2">RESUBMISSION</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-body">
+        <p><strong>Initiative:</strong> {{ submission.initiative.name_json|safe }}</p>
+        <p><strong>Current Status:</strong> {{ submission.workflow_state|title }}</p>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">Form Data</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for field in submission.field_values.all %}
+                    <tr>
+                        <td><strong>{{ field.field_key }}</strong></td>
+                        <td>{{ field.value_json }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if audits %}
+<div class="card mb-3">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">Workflow History</h5>
+    </div>
+    <div class="card-body">
+        <div class="timeline">
+            {% for audit in audits %}
+            <div class="mb-3 pb-3 border-bottom">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="badge bg-primary">{{ audit.action }}</span>
+                        <p class="mb-1 mt-2"><strong>{{ audit.user.email }}</strong> <small class="text-muted">{{ audit.user.role|upper }}</small></p>
+                        <p class="text-muted mb-0"><small>{{ audit.from_state }} &rarr; <strong>{{ audit.to_state }}</strong></small></p>
+                    </div>
+                    <small class="text-muted">{{ audit.created_at|date:'Y-m-d H:i' }}</small>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if reviews %}
+<div class="card">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">Feedback from Reviewers</h5>
+    </div>
+    <div class="card-body">
+        {% for review in reviews %}
+        <div class="mb-3 pb-3 border-bottom">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="mb-1">
+                        <strong>{{ review.reviewer.email }}</strong>
+                        <small class="text-muted">({{ review.reviewer.role|upper }})</small>
+                    </p>
+                    <p class="text-muted small mb-2">{{ review.from_state }} &rarr; <span class="badge bg-info">{{ review.to_state }}</span></p>
+                </div>
+                <small class="text-muted">{{ review.reviewed_at|date:'Y-m-d H:i' }}</small>
+            </div>
+            {% if review.comment %}
+            <div class="bg-light p-3 rounded mt-2" style="border-left: 4px solid #007bff;">
+                <p class="mb-0">{{ review.comment }}</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

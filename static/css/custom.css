@@ -1,0 +1,42 @@
+/* custom.css: additional styling for responsive layout */
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* Header hero styling */
+header {
+    background-image: url('/static/images/children-banner.jpg');
+    background-size: cover;
+    background-position: center;
+}
+header .lead {
+    opacity: 0.9;
+}
+
+/* Utility spacing overrides */
+.mt-4 { margin-top: 1.5rem !important; }
+.mb-5 { margin-bottom: 3rem !important; }
+
+/* Card shadows */
+.card {
+    border: none;
+    border-radius: .5rem;
+}
+
+/* Table wrapping */
+.table-responsive { overflow-x: auto; }
+
+/* Footer text links */
+footer a { text-decoration: underline; }
+
+/* Center forms */
+form .form-control { max-width: 100%; }
+
+/* Set a max-width on container for very large screens */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1140px;
+    }
+}

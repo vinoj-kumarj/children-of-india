@@ -1,0 +1,817 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Analytics Dashboard - Children of India{% endblock %}
+
+{% block content %}
+<div class="container-fluid pt-4 pb-5" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); min-height: 100vh;">
+  
+  <!-- Page Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h1 class="display-5 fw-bold" style="color: #1a4d7f;">
+            <i class="fas fa-chart-line me-3" style="color: #28a745;"></i>Analytics Dashboard
+          </h1>
+          <p class="text-muted mt-2">
+            <i class="fas fa-clock me-2"></i>Last updated: {{ "now"|date:"M d, Y H:i" }}
+          </p>
+        </div>
+        <button class="btn btn-outline-primary btn-lg" onclick="refreshDashboard()">
+          <i class="fas fa-sync-alt me-2"></i>Refresh
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Executive Summary Cards -->
+  <div class="row mb-4">
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+      <div class="card border-0 shadow-sm h-100 card-hover" style="border-top: 4px solid #0D6EFD;">
+        <div class="card-body text-center">
+          <div class="display-4 fw-bold" style="color: #0D6EFD;">{{ total_initiatives }}</div>
+          <p class="text-muted mb-0 mt-2">
+            <i class="fas fa-project-diagram me-2"></i>Active Programs
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+      <div class="card border-0 shadow-sm h-100 card-hover" style="border-top: 4px solid #28A745;">
+        <div class="card-body text-center">
+          <div class="display-4 fw-bold" style="color: #28A745;">{{ approved_count }}</div>
+          <p class="text-muted mb-0 mt-2">
+            <i class="fas fa-check-circle me-2"></i>Approved
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+      <div class="card border-0 shadow-sm h-100 card-hover" style="border-top: 4px solid #DC3545;">
+        <div class="card-body text-center">
+          <div class="display-4 fw-bold" style="color: #DC3545;">{{ rejected_count }}</div>
+          <p class="text-muted mb-0 mt-2">
+            <i class="fas fa-times-circle me-2"></i>Rejected
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+      <div class="card border-0 shadow-sm h-100 card-hover" style="border-top: 4px solid #FFC107;">
+        <div class="card-body text-center">
+          <div class="display-4 fw-bold" style="color: #FFC107;">{{ approval_rate }}%</div>
+          <p class="text-muted mb-0 mt-2">
+            <i class="fas fa-percentage me-2"></i>Approval Rate
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+      <div class="card border-0 shadow-sm h-100 card-hover" style="border-top: 4px solid #0DCAF0;">
+        <div class="card-body text-center">
+          <div class="display-4 fw-bold" style="color: #0DCAF0;">{{ coordinator_review_count }}</div>
+          <p class="text-muted mb-0 mt-2">
+            <i class="fas fa-hourglass-start me-2"></i>In Review
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+      <div class="card border-0 shadow-sm h-100 card-hover" style="border-top: 4px solid #6F42C1;">
+        <div class="card-body text-center">
+          <div class="display-4 fw-bold" style="color: #6F42C1;">{{ field_coordinators }}</div>
+          <p class="text-muted mb-0 mt-2">
+            <i class="fas fa-users me-2"></i>Field Teams
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row 1 -->
+  <div class="row mb-4">
+    <!-- Submissions by State Pie Chart -->
+    <div class="col-lg-6 mb-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom py-3">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-chart-pie me-2" style="color: #28a745;"></i>Submissions by State
+          </h5>
+        </div>
+        <div class="card-body">
+          <div style="position: relative; height: 300px;">
+            <canvas id="submissionsByStateChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Workflow Funnel Chart -->
+    <div class="col-lg-6 mb-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom py-3">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-filter me-2" style="color: #0D6EFD;"></i>Submission Funnel
+          </h5>
+        </div>
+        <div class="card-body">
+          <div style="position: relative; height: 300px;">
+            <canvas id="workflowFunnelChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row 2 -->
+  <div class="row mb-4">
+    <!-- Approval Trend Line Chart -->
+    <div class="col-lg-8 mb-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom py-3">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-chart-line me-2" style="color: #17a2b8;"></i>Approval Trends (Last 2 Weeks)
+          </h5>
+        </div>
+        <div class="card-body">
+          <div style="position: relative; height: 300px;">
+            <canvas id="approvalTrendChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submissions by Initiative -->
+    <div class="col-lg-4 mb-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom py-3">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-project-diagram me-2" style="color: #6f42c1;"></i>By Program
+          </h5>
+        </div>
+        <div class="card-body">
+          <div style="position: relative; height: 300px;">
+            <canvas id="submissionsByInitiativeChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row 3 -->
+  <div class="row mb-4">
+    <!-- Field Coordinator Performance -->
+    <div class="col-lg-12 mb-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom py-3">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-users-cog me-2" style="color: #fd7e14;"></i>Field Coordinator Performance
+          </h5>
+        </div>
+        <div class="card-body">
+          <div style="position: relative; height: 300px;">
+            <canvas id="coordinatorPerformanceChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Programs Performance Table -->
+  <div class="row mb-4">
+    <div class="col-lg-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom py-3">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-table me-2" style="color: #28a745;"></i>Program Performance Breakdown
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr style="background: linear-gradient(135deg, #1a4d7f 0%, #2a6ba8 100%); color: white;">
+                  <th><i class="fas fa-project-diagram me-2"></i>Program</th>
+                  <th class="text-center"><i class="fas fa-list me-2"></i>Total</th>
+                  <th class="text-center"><i class="fas fa-check-circle me-2" style="color: #28a745;"></i>Approved</th>
+                  <th class="text-center"><i class="fas fa-times-circle me-2" style="color: #dc3545;"></i>Rejected</th>
+                  <th class="text-center"><i class="fas fa-hourglass-start me-2" style="color: #ffc107;"></i>Pending</th>
+                  <th class="text-center"><i class="fas fa-percentage me-2"></i>Approval %</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for initiative in submissions_by_initiative %}
+                <tr class="border-bottom">
+                  <td>
+                    <strong>{{ initiative.name_json.en }}</strong>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-info rounded-pill">{{ initiative.total }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-success rounded-pill">{{ initiative.approved }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-danger rounded-pill">{{ initiative.rejected }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-warning rounded-pill">{{ initiative.pending }}</span>
+                  </td>
+                  <td class="text-center">
+                    {% if initiative.total > 0 %}
+                      <strong style="color: #28a745;">{{ initiative.approved|floatformat:0|add:0 }}%</strong>
+                    {% else %}
+                      <span class="text-muted">N/A</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Field Coordinator Leaderboard -->
+  <div class="row mb-4">
+    <div class="col-lg-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom py-3">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-award me-2" style="color: #ffc107;"></i>Field Coordinator Leaderboard
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr style="background: linear-gradient(135deg, #1a4d7f 0%, #2a6ba8 100%); color: white;">
+                  <th><i class="fas fa-rank me-2"></i>Rank</th>
+                  <th><i class="fas fa-user me-2"></i>Name</th>
+                  <th><i class="fas fa-map-marker-alt me-2"></i>District</th>
+                  <th class="text-center"><i class="fas fa-envelope me-2"></i>Email</th>
+                  <th class="text-center"><i class="fas fa-list me-2"></i>Submissions</th>
+                  <th class="text-center"><i class="fas fa-check me-2" style="color: #28a745;"></i>Approved</th>
+                  <th class="text-center"><i class="fas fa-times me-2" style="color: #dc3545;"></i>Rejected</th>
+                  <th class="text-center"><i class="fas fa-percentage me-2"></i>Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for coordinator in field_coordinators_stats %}
+                <tr class="border-bottom">
+                  <td>
+                    {% if forloop.counter == 1 %}
+                      <span class="badge bg-warning" style="font-size: 14px;">🥇</span>
+                    {% elif forloop.counter == 2 %}
+                      <span class="badge bg-secondary" style="font-size: 14px;">🥈</span>
+                    {% elif forloop.counter == 3 %}
+                      <span class="badge" style="background: #CD7F32; font-size: 14px;">🥉</span>
+                    {% else %}
+                      <span class="text-muted">{{ forloop.counter }}</span>
+                    {% endif %}
+                  </td>
+                  <td><strong>{{ coordinator.full_name }}</strong></td>
+                  <td>{{ coordinator.district }}</td>
+                  <td class="text-center">
+                    <small class="text-muted">{{ coordinator.email }}</small>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-info rounded-pill">{{ coordinator.total_submissions }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-success rounded-pill">{{ coordinator.approved_submissions }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-danger rounded-pill">{{ coordinator.rejected_submissions }}</span>
+                  </td>
+                  <td class="text-center">
+                    <strong style="color: #28a745;">{{ coordinator.approval_rate }}%</strong>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pending Submissions with Priority -->
+  <div class="row mb-4">
+    <div class="col-lg-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom py-3">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-clock me-2" style="color: #ffc107;"></i>Pending Submissions Timeline
+          </h5>
+        </div>
+        <div class="card-body">
+          {% if pending_submissions %}
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr style="background: linear-gradient(135deg, #1a4d7f 0%, #2a6ba8 100%); color: white;">
+                    <th><i class="fas fa-exclamation-triangle me-2"></i>Priority</th>
+                    <th><i class="fas fa-file-pdf me-2"></i>Form</th>
+                    <th><i class="fas fa-user me-2"></i>Submitted By</th>
+                    <th><i class="fas fa-project-diagram me-2"></i>Program</th>
+                    <th><i class="fas fa-hourglass-start me-2"></i>Status</th>
+                    <th class="text-center"><i class="fas fa-calendar me-2"></i>Days Pending</th>
+                    <th class="text-center"><i class="fas fa-eye me-2"></i>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for submission in pending_submissions %}
+                  <tr class="border-bottom">
+                    <td>
+                      {% if submission.priority == 'URGENT' %}
+                        <span class="badge bg-danger">🚨 URGENT</span>
+                      {% elif submission.priority == 'ATTENTION NEEDED' %}
+                        <span class="badge bg-warning">⚠️ ATTENTION</span>
+                      {% else %}
+                        <span class="badge bg-success">✓ ON TRACK</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <strong>{{ submission.form_version.form.name_json.en }}</strong>
+                    </td>
+                    <td>{{ submission.user.full_name }}</td>
+                    <td>{{ submission.initiative.name_json.en }}</td>
+                    <td>
+                      <span class="badge bg-info">{{ submission.get_workflow_state_display }}</span>
+                    </td>
+                    <td class="text-center">
+                      <strong>{{ submission.days_pending }}<span class="text-muted"> days</span></strong>
+                    </td>
+                    <td class="text-center">
+                      <button class="btn btn-sm btn-primary" onclick="viewSubmissionDetails('{{ submission.id }}')">
+                        <i class="fas fa-eye me-1"></i>View
+                      </button>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>No pending submissions at the moment.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activity Log -->
+  <div class="row mb-4">
+    <div class="col-lg-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom py-3">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-history me-2" style="color: #17a2b8;"></i>Recent Activity (Last 10 Actions)
+          </h5>
+        </div>
+        <div class="card-body">
+          {% if recent_audits %}
+            <div class="timeline">
+              {% for audit in recent_audits %}
+              <div class="timeline-item mb-3 pb-3 border-bottom">
+                <div class="d-flex">
+                  <div class="timeline-marker">
+                    {% if audit.action == 'approve' %}
+                      <i class="fas fa-check-circle" style="color: #28a745; font-size: 18px;"></i>
+                    {% elif audit.action == 'reject' %}
+                      <i class="fas fa-times-circle" style="color: #dc3545; font-size: 18px;"></i>
+                    {% elif audit.action == 'comment' %}
+                      <i class="fas fa-comment" style="color: #0dcaf0; font-size: 18px;"></i>
+                    {% else %}
+                      <i class="fas fa-arrow-right" style="color: #6f42c1; font-size: 18px;"></i>
+                    {% endif %}
+                  </div>
+                  <div class="flex-grow-1 ms-3">
+                    <div>
+                      <strong>{{ audit.user.full_name }}</strong>
+                      <span class="text-muted ms-2">{{ audit.created_at|date:"M d, Y H:i" }}</span>
+                    </div>
+                    <p class="mb-1">
+                      <strong>Action:</strong> 
+                      {% if audit.action == 'submit' %}
+                        <span class="badge bg-primary">Submitted</span>
+                      {% elif audit.action == 'approve' %}
+                        <span class="badge bg-success">Approved</span>
+                      {% elif audit.action == 'reject' %}
+                        <span class="badge bg-danger">Rejected</span>
+                      {% elif audit.action == 'comment' %}
+                        <span class="badge bg-info">Added Comment</span>
+                      {% else %}
+                        <span class="badge bg-secondary">{{ audit.action|title }}</span>
+                      {% endif %}
+                    </p>
+                    <small class="text-muted">
+                      Form: <strong>{{ audit.submission.form_version.form.name_json.en }}</strong>
+                      | State: <strong>{{ audit.from_state|title }}</strong> → <strong>{{ audit.to_state|title }}</strong>
+                    </small>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>No recent activities.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Submission Details Modal -->
+<div class="modal fade" id="submissionDetailsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0">
+      <div class="modal-header" style="background: linear-gradient(135deg, #1a4d7f 0%, #2a6ba8 100%); color: white;">
+        <h5 class="modal-title">
+          <i class="fas fa-file-pdf me-2"></i>Submission Details
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="submissionDetailsContent">
+        <div class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Styles -->
+<style>
+  .card-hover {
+    transition: all 0.3s ease;
+  }
+
+  .card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15) !important;
+  }
+
+  .timeline {
+    position: relative;
+    padding-left: 0;
+  }
+
+  .timeline-item {
+    position: relative;
+    padding-left: 0;
+  }
+
+  .timeline-marker {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  canvas {
+    max-height: 300px;
+  }
+
+  .table-hover tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05) !important;
+  }
+</style>
+
+<!-- Chart.js Library (Open Source) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+<script>
+// Color scheme
+const colors = {
+  primary: '#0D6EFD',
+  success: '#28A745',
+  danger: '#DC3545',
+  warning: '#FFC107',
+  info: '#0DCAF0',
+  purple: '#6F42C1',
+  orange: '#FD7E14'
+};
+
+// Initialize charts
+function initializeCharts() {
+  initSubmissionsByStateChart();
+  initWorkflowFunnelChart();
+  initApprovalTrendChart();
+  initSubmissionsByInitiativeChart();
+  initCoordinatorPerformanceChart();
+}
+
+// Submissions by State - Pie Chart
+function initSubmissionsByStateChart() {
+  fetch('/reports/api/chart/submissions_by_state/', {
+    credentials: 'same-origin'
+  })
+  .then(response => response.json())
+  .then(data => {
+    const ctx = document.getElementById('submissionsByStateChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: data,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { padding: 15, font: { size: 12 } }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            padding: 12,
+            titleFont: { size: 13 },
+            bodyFont: { size: 12 },
+            displayColors: true,
+            borderColor: '#fff',
+            borderWidth: 1
+          }
+        }
+      }
+    });
+  });
+}
+
+// Workflow Funnel - Bar Chart
+function initWorkflowFunnelChart() {
+  fetch('/reports/api/chart/workflow_funnel/', {
+    credentials: 'same-origin'
+  })
+  .then(response => response.json())
+  .then(data => {
+    const ctx = document.getElementById('workflowFunnelChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'funnel',
+      data: {
+        labels: data.labels,
+        datasets: [{
+          data: data.datasets[0].data,
+          backgroundColor: ['#0D6EFD', '#0DCAF0', '#FFC107', '#28A745'],
+          borderColor: '#fff',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            padding: 12,
+            callbacks: {
+              label: function(context) {
+                return context.parsed.x + ' submissions';
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { font: { size: 12 } }
+          }
+        }
+      }
+    });
+  }).catch(err => {
+    // Fallback to bar chart if funnel not supported
+    fetch('/reports/api/chart/workflow_funnel/', {
+      credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+      const ctx = document.getElementById('workflowFunnelChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: data.labels,
+          datasets: [{
+            label: 'Submissions',
+            data: data.datasets[0].data,
+            backgroundColor: ['#0D6EFD', '#0DCAF0', '#FFC107', '#28A745'],
+            borderColor: '#fff',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { beginAtZero: true }
+          }
+        }
+      });
+    });
+  });
+}
+
+// Approval Trend - Line Chart
+function initApprovalTrendChart() {
+  fetch('/reports/api/chart/approval_trend/', {
+    credentials: 'same-origin'
+  })
+  .then(response => response.json())
+  .then(data => {
+    const ctx = document.getElementById('approvalTrendChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: data,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { padding: 15, font: { size: 12 } }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            padding: 12,
+            borderColor: '#fff',
+            borderWidth: 1
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { font: { size: 11 } }
+          },
+          x: {
+            ticks: { font: { size: 11 } }
+          }
+        }
+      }
+    });
+  });
+}
+
+// Submissions by Initiative - Bar Chart
+function initSubmissionsByInitiativeChart() {
+  fetch('/reports/api/chart/submissions_by_initiative/', {
+    credentials: 'same-origin'
+  })
+  .then(response => response.json())
+  .then(data => {
+    const ctx = document.getElementById('submissionsByInitiativeChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: data,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { padding: 15, font: { size: 11 } }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            padding: 12
+          }
+        },
+        scales: {
+          y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+          x: { ticks: { font: { size: 10 } } }
+        }
+      }
+    });
+  });
+}
+
+// Coordinator Performance - Horizontal Bar Chart
+function initCoordinatorPerformanceChart() {
+  fetch('/reports/api/chart/coordinator_performance/', {
+    credentials: 'same-origin'
+  })
+  .then(response => response.json())
+  .then(data => {
+    const ctx = document.getElementById('coordinatorPerformanceChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: data,
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { padding: 15, font: { size: 12 } }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            padding: 12
+          }
+        },
+        scales: {
+          x: { beginAtZero: true }
+        }
+      }
+    });
+  });
+}
+
+// View Submission Details
+function viewSubmissionDetails(submissionId) {
+  const modal = new bootstrap.Modal(document.getElementById('submissionDetailsModal'), {});
+  const contentDiv = document.getElementById('submissionDetailsContent');
+  
+  fetch(`/reports/api/submission/${submissionId}/`, {
+    credentials: 'same-origin'
+  })
+  .then(response => response.json())
+  .then(data => {
+    let auditHtml = '';
+    data.audits.forEach(audit => {
+      auditHtml += `
+        <div class="border-bottom pb-2 mb-2">
+          <strong>${audit.user}</strong> - ${new Date(audit.created_at).toLocaleString()}
+          <br>
+          <small class="text-muted">${audit.action.toUpperCase()}</small>
+          <br>
+          <span class="badge bg-secondary">${audit.from_state}</span>
+          <i class="fas fa-arrow-right"></i>
+          <span class="badge bg-info">${audit.to_state}</span>
+        </div>
+      `;
+    });
+
+    contentDiv.innerHTML = `
+      <div>
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <p><strong>Submission ID:</strong><br><code>${data.id}</code></p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Form:</strong><br>${data.form_name}</p>
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <p><strong>Submitted By:</strong><br>${data.submitted_by}</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Program:</strong><br>${data.initiative}</p>
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <p><strong>Status:</strong><br><span class="badge bg-info">${data.state.toUpperCase()}</span></p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Created:</strong><br>${new Date(data.created_at).toLocaleString()}</p>
+          </div>
+        </div>
+        <hr>
+        <h6>Audit Trail</h6>
+        ${auditHtml}
+      </div>
+    `;
+    modal.show();
+  })
+  .catch(err => {
+    contentDiv.innerHTML = '<div class="alert alert-danger">Error loading submission details</div>';
+  });
+}
+
+// Refresh Dashboard
+function refreshDashboard() {
+  location.reload();
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', initializeCharts);
+</script>
+
+{% endblock %}

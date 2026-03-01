@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: children-of-india
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn core.wsgi:application"

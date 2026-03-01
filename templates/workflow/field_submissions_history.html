@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}My Submissions - Children of India{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h2>My Submission History</h2>
+    <p class="text-muted">Track the status of your submitted forms and review feedback from coordinators and leads.</p>
+</div>
+
+{% if submissions %}
+<div class="row">
+    {% for submission in submissions %}
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="mb-1">Form Submission</h6>
+                        <small class="text-muted">{{ submission.created_at|date:'Y-m-d' }}</small>
+                    </div>
+                    {% if submission.workflow_state == "draft" %}
+                    <span class="badge bg-secondary">DRAFT</span>
+                    {% elif submission.workflow_state == "submitted" %}
+                    <span class="badge bg-warning">SUBMITTED</span>
+                    {% elif submission.workflow_state == "coordinator_review" %}
+                    <span class="badge bg-info">COORDINATOR REVIEW</span>
+                    {% elif submission.workflow_state == "lead_review" %}
+                    <span class="badge bg-primary">LEAD REVIEW</span>
+                    {% elif submission.workflow_state == "approved" %}
+                    <span class="badge bg-success">APPROVED</span>
+                    {% elif submission.workflow_state == "rejected" %}
+                    <span class="badge bg-danger">REJECTED</span>
+                    {% elif submission.workflow_state == "resubmission" %}
+                    <span class="badge bg-warning">RESUBMISSION</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><strong>Initiative:</strong> {{ submission.initiative.name_json|safe }}</p>
+                {% if submission.reviews %}
+                <div class="mt-2">
+                    <small><strong>Latest feedback:</strong></small>
+                    <p class="text-muted small mb-0">{{ submission.reviews.first.comment }}</p>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-white border-top">
+                <a href="{% url 'field_submission_detail' submission.id %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fa fa-eye"></i> View Details
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info">You haven't submitted any forms yet. <a href="/forms/">Go to Forms</a></div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,11 @@
+Django
+wagtail
+psycopg2-binary
+django-fsm
+django-simple-history
+django-filter
+Pillow
+reportlab
+pytesseract
+gunicorn
+python-decouple
