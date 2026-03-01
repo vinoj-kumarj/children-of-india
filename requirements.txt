@@ -9,3 +9,4 @@ reportlab
 pytesseract
 gunicorn
 python-decouple
+whitenoise
