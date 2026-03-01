@@ -156,6 +156,12 @@ ALLOWED_HOSTS = ["*"]
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
+# Include project-level `static/` directory so runserver and collectstatic
+# can find files placed at the repository root `static/` folder.
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
 
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"

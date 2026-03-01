@@ -37,6 +37,14 @@
     <div class="card-body">
         <p><strong>Initiative:</strong> {{ submission.initiative.name_json|safe }}</p>
         <p><strong>Current Status:</strong> {{ submission.workflow_state|title }}</p>
+        {% if submission.workflow_state == "draft" %}
+        <form method="post" action="{% url 'submit_submission' submission.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">
+                <i class="fa fa-paper-plane"></i> Submit to Coordinator
+            </button>
+        </form>
+        {% endif %}
     </div>
 </div>
 

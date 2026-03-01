@@ -1,7 +1,8 @@
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.utils import timezone
+
 from .models import Submission
+from workflow.services import WorkflowService
 
 
 @login_required
@@ -15,8 +16,7 @@ def submit_submission(request, submission_id):
     if submission.workflow_state != "draft":
         return redirect("dashboard")
 
-    submission.workflow_state = "submitted"
-    submission.submitted_at = timezone.now()
-    submission.save()
+    # use workflow service to transition state and log audit
+    WorkflowService.transition(submission, request.user, "submit")
 
     return redirect("dashboard")

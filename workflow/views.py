@@ -20,12 +20,13 @@ def coordinator_dashboard(request):
     if not is_coordinator(request.user):
         return redirect("dashboard")
 
-    submissions = Submission.objects.filter(workflow_state="submitted")
+    # coordinator should see submissions that have been sent by field coordinators
+    # transition now moves directly to coordinator_review
+    submissions = Submission.objects.filter(workflow_state="coordinator_review")
 
     return render(request, "workflow/coordinator_dashboard.html", {
         "submissions": submissions
     })
-
 
 @login_required
 def coordinator_review(request, submission_id):
@@ -68,10 +69,6 @@ def coordinator_review(request, submission_id):
         "comments": comments,
         "audits": audits
     })
-
-
-def is_lead(user):
-    return user.role == "lead"
 
 
 @login_required
@@ -129,9 +126,6 @@ def lead_review(request, submission_id):
 
     return render(request, "workflow/lead_review.html", {
         "submission": submission,
-        "reviews": reviews,
-        "comments": comments,
-        "audits": audits,
         "reviews": reviews,
         "comments": comments,
         "audits": audits

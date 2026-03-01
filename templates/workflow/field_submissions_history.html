@@ -49,6 +49,11 @@
                 <a href="{% url 'field_submission_detail' submission.id %}" class="btn btn-sm btn-outline-primary">
                     <i class="fa fa-eye"></i> View Details
                 </a>
+                {% if submission.workflow_state == "draft" %}
+                <a href="{% url 'submit_submission' submission.id %}" class="btn btn-sm btn-primary ms-2">
+                    <i class="fa fa-paper-plane"></i> Submit
+                </a>
+                {% endif %}
             </div>
         </div>
     </div>
