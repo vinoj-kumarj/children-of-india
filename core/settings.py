@@ -91,10 +91,10 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": env('DB_NAME', default='ChildrenOfIndia'),
-        "USER": env('DB_USER', default='postgres'),
-        "PASSWORD": env('DB_PASSWORD', default=''),
-        "HOST": env('DB_HOST', default='localhost'),
+        "NAME": env('DB_NAME', default='childrenofindia'),
+        "USER": env('DB_USER', default='childrenofindia_user'),
+        "PASSWORD": env('DB_PASSWORD', default='4qZ50DIiC222Vn1eKJDNPFNgya8RNLKb'),
+        "HOST": env('DB_HOST', default='dpg-d6i23an5r7bs73f7jl4g-a.oregon-postgres.render.com'),
         "PORT": env('DB_PORT', default='5432'),
     }
 }
