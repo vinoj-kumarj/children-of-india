@@ -16,11 +16,8 @@
                 <div class="mb-3">
 
                     <label class="form-label fw-bold">
-                        {% if field.label.en %}
-                            {{ field.label.en }}
-                        {% else %}
-                            {{ field.label }}
-                        {% endif %}
+                        {{ field.label }}
+                        {% if field.is_required %}<span class="text-danger">*</span>{% endif %}
                     </label>
 
                     {# TEXT FIELD #}
@@ -28,6 +25,8 @@
                         <input type="text"
                                name="{{ field.name }}"
                                class="form-control"
+                               placeholder="{{ field.placeholder|default:'' }}"
+                               {% if field.is_required %}required{% endif %}
                                value="{% if draft %}{{ draft.data_json|get_item:field.name }}{% endif %}">
 
                     {# NUMBER FIELD #}
@@ -35,28 +34,28 @@
                         <input type="number"
                                name="{{ field.name }}"
                                class="form-control"
+                               placeholder="{{ field.placeholder|default:'' }}"
+                               {% if field.is_required %}required{% endif %}
                                value="{% if draft %}{{ draft.data_json|get_item:field.name }}{% endif %}">
 
                     {# TEXTAREA FIELD #}
                     {% elif field.type == "textarea" %}
                         <textarea name="{{ field.name }}"
                                   class="form-control"
+                                  placeholder="{{ field.placeholder|default:'' }}"
+                                  {% if field.is_required %}required{% endif %}
                                   rows="4">{% if draft %}{{ draft.data_json|get_item:field.name }}{% endif %}</textarea>
 
                     {# SELECT DROPDOWN #}
                     {% elif field.type == "select" %}
-                        <select name="{{ field.name }}" class="form-select">
+                        <select name="{{ field.name }}" class="form-select" {% if field.is_required %}required{% endif %}>
                             <option value="">-- Select --</option>
                             {% for option in field.options %}
-                                <option value="{{ option.value|default:option }}"
-                                    {% if draft and draft.data_json|get_item:field.name == option.value|default:option %}
+                                <option value="{{ option }}"
+                                    {% if draft and draft.data_json|get_item:field.name == option %}
                                         selected
                                     {% endif %}>
-                                    {% if option.label.en %}
-                                        {{ option.label.en }}
-                                    {% else %}
-                                        {{ option }}
-                                    {% endif %}
+                                    {{ option }}
                                 </option>
                             {% endfor %}
                         </select>
@@ -68,21 +67,33 @@
                                 <input class="form-check-input"
                                        type="radio"
                                        name="{{ field.name }}"
-                                       value="{{ option.value|default:option }}"
-                                       {% if draft and draft.data_json|get_item:field.name == option.value|default:option %}
+                                       value="{{ option }}"
+                                       {% if field.is_required and forloop.first %}required{% endif %}
+                                       {% if draft and draft.data_json|get_item:field.name == option %}
                                            checked
                                        {% endif %}>
                                 <label class="form-check-label">
-                                    {% if option.label.en %}
-                                        {{ option.label.en }}
-                                    {% else %}
-                                        {{ option }}
-                                    {% endif %}
+                                    {{ option }}
                                 </label>
                             </div>
                         {% endfor %}
 
-                    {# SINGLE CHECKBOX (Yes/No) #}
+                    {# BOOLEAN (Single Checkbox) #}
+                    {% elif field.type == "bool" %}
+                        <div class="form-check">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   name="{{ field.name }}"
+                                   value="true"
+                                   {% if draft and draft.data_json|get_item:field.name %}
+                                       checked
+                                   {% endif %}>
+                            <label class="form-check-label">
+                                {{ field.label }}
+                            </label>
+                        </div>
+
+                    {# CHECKBOX (Multiple or Single) #}
                     {% elif field.type == "checkbox" %}
                         {% if field.options %}
                             {% for option in field.options %}
@@ -90,16 +101,12 @@
                                     <input class="form-check-input"
                                            type="checkbox"
                                            name="{{ field.name }}"
-                                           value="{{ option.value|default:option }}"
-                                           {% if draft and option.value|default:option in draft.data_json|get_item:field.name %}
+                                           value="{{ option }}"
+                                           {% if draft and option in draft.data_json|get_item:field.name %}
                                                checked
                                            {% endif %}>
                                     <label class="form-check-label">
-                                        {% if option.label.en %}
-                                            {{ option.label.en }}
-                                        {% else %}
-                                            {{ option }}
-                                        {% endif %}
+                                        {{ option }}
                                     </label>
                                 </div>
                             {% endfor %}
@@ -118,11 +125,13 @@
                             </div>
                         {% endif %}
 
-                    {# FILE UPLOAD #}
-                    {% elif field.type == "file" %}
+                    {# FILE / IMAGE UPLOAD #}
+                    {% elif field.type == "file" or field.type == "image" %}
                         <input type="file"
                                name="{{ field.name }}"
-                               class="form-control">
+                               class="form-control"
+                               {% if field.type == "image" %}accept="image/*"{% endif %}
+                               {% if field.is_required %}required{% endif %}>
 
                     {# MULTI CHECKBOX #}
                     {% elif field.type == "multicheckbox" %}

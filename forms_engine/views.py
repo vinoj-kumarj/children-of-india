@@ -47,31 +47,22 @@ def fill_form(request, version_id):
         is_published=True
     )
 
-    # Handle legacy schema wrapping
-    full_schema = form_version.schema_json or {}
-
-    if isinstance(full_schema, dict) and "schema_json" in full_schema:
-        schema = full_schema.get("schema_json", {})
-    else:
-        schema = full_schema if isinstance(full_schema, dict) else {}
-
-    raw_fields = schema.get("fields", [])
-
-    # Normalize fields
+    # Use FormField models instead of schema_json
+    form_fields = form_version.fields.all().order_by("order_index")
     fields = []
-    for f in raw_fields:
-        name = f.get("name") or f.get("field_key")
-        ftype = f.get("type") or f.get("field_type")
-        label = f.get("label") or f.get("label_json") or {"en": name or ""}
-
-        if not name:
-            continue
+    for f in form_fields:
+        options = []
+        if f.options:
+            options = [opt.strip() for opt in f.options.split(",")]
 
         fields.append({
-            "name": name,
-            "type": ftype,
-            "label": label,
-            "options": f.get("options", [])
+            "name": f.field_key,
+            "type": f.field_type,
+            "label": f.label,
+            "placeholder": f.placeholder,
+            "help_text": f.help_text,
+            "options": options,
+            "is_required": f.is_required
         })
 
     # ===============================
@@ -88,8 +79,8 @@ def fill_form(request, version_id):
         for field in fields:
             field_key = field["name"]
 
-            # Handle file upload separately
-            if field["type"] == "file":
+            # Handle file/image upload separately
+            if field["type"] in ["file", "image"]:
                 file_obj = request.FILES.get(field_key)
 
                 SubmissionFieldValue.objects.create(
@@ -116,5 +107,5 @@ def fill_form(request, version_id):
     return render(request, "forms_engine/fill_form.html", {
         "form_version": form_version,
         "fields": fields,
-        "title": schema.get("title", "Dynamic Form")
+        "title": form_version.form.name
     })

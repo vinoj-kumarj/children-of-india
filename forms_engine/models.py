@@ -8,14 +8,14 @@ class Form(models.Model):
 
     initiative = models.ForeignKey(Initiative, on_delete=models.CASCADE)
 
-    name_json = models.JSONField()
-    description_json = models.JSONField(blank=True, null=True)
+    name = models.CharField(max_length=255, default="Untitled Form")
+    description = models.TextField(blank=True, null=True)
 
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.name_json.get("en", "Form")
+        return self.name
 
 
 class FormVersion(models.Model):
@@ -24,7 +24,7 @@ class FormVersion(models.Model):
     form = models.ForeignKey(Form, on_delete=models.CASCADE, related_name="versions")
 
     version_number = models.IntegerField()
-    schema_json = models.JSONField()
+    schema_json = models.JSONField(blank=True, null=True)
 
     is_published = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -45,6 +45,9 @@ class FormField(models.Model):
         ("textarea", "Textarea"),
         ("image", "Image"),
         ("file", "File"),
+        ("bool", "Boolean"),
+        ("checkbox", "Checkbox"),
+        ("radio", "Radio"),
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -54,12 +57,15 @@ class FormField(models.Model):
     field_key = models.CharField(max_length=255)
     field_type = models.CharField(max_length=50, choices=FIELD_TYPES)
 
-    label_json = models.JSONField()
-    placeholder_json = models.JSONField(blank=True, null=True)
-    help_text_json = models.JSONField(blank=True, null=True)
+    label = models.CharField(max_length=255, default="Field Label")
+    placeholder = models.CharField(max_length=255, blank=True, null=True)
+    help_text = models.TextField(blank=True, null=True)
 
-    validation_json = models.JSONField(blank=True, null=True)
-    options_json = models.JSONField(blank=True, null=True)
+    options = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Comma separated options for select/radio/checkbox"
+    )
 
     order_index = models.IntegerField(default=0)
     is_required = models.BooleanField(default=False)

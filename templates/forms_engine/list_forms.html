@@ -10,18 +10,20 @@
         <table class="table table-striped table-hover mb-0">
             <thead class="table-light">
                 <tr>
-                    <th>Form Version ID</th>
+                    <th>Form Name</th>
+                    <th>Initiative</th>
                     <th>Version</th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody>
-                {% for form in forms %}
+                {% for form_version in forms %}
                 <tr>
-                    <td>{{ form.id }}</td>
-                    <td>v{{ form.version_number }}</td>
+                    <td>{{ form_version.form.name }}</td>
+                    <td>{{ form_version.form.initiative.name_json.en|default:form_version.form.initiative.name_json }}</td>
+                    <td>v{{ form_version.version_number }}</td>
                     <td>
-                        <a href="{% url 'fill_form' form.id %}" class="btn btn-primary btn-sm">
+                        <a href="{% url 'fill_form' form_version.id %}" class="btn btn-primary btn-sm">
                             <i class="fa fa-pencil-alt"></i> Fill
                         </a>
                     </td>
