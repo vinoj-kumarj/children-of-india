@@ -11,7 +11,8 @@ class Initiative(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.name_json.get("en", "Initiative")
+        name = self.name_json.get("en", "Initiative") if isinstance(self.name_json, dict) else "Initiative"
+        return f"{name} - {self.id}"
 
 
 class District(models.Model):
@@ -19,7 +20,8 @@ class District(models.Model):
     name_json = models.JSONField()
 
     def __str__(self):
-        return self.name_json.get("en", "District")
+        name = self.name_json.get("en", "District") if isinstance(self.name_json, dict) else "District"
+        return f"{name} - {self.id}"
 
 
 class Village(models.Model):
@@ -28,7 +30,8 @@ class Village(models.Model):
     name_json = models.JSONField()
 
     def __str__(self):
-        return self.name_json.get("en", "Village")
+        name = self.name_json.get("en", "Village") if isinstance(self.name_json, dict) else "Village"
+        return f"{name} - {self.id}"
 
 
 class UserGeography(models.Model):
